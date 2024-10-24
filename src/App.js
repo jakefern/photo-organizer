@@ -1,10 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 function App() {
+  const [photos, setPhotos] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedBy, setUploadedBy] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
+
+  // Fetch photos from the backend
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/photos');
+        setPhotos(response.data);
+      } catch (error) {
+        console.error('Error fetching photos:', error);
+      }
+    };
+    fetchPhotos();
+  }, []);
 
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
@@ -32,6 +46,9 @@ function App() {
       });
 
       setUploadStatus(response.data.message);
+      // Re-fetch photos after successful upload
+      const updatedPhotos = await axios.get('http://localhost:3001/api/photos');
+      setPhotos(updatedPhotos.data);
     } catch (error) {
       console.error('Error uploading file:', error);
       setUploadStatus('Failed to upload file');
@@ -50,6 +67,21 @@ function App() {
       />
       <button onClick={handleUpload}>Upload</button>
       <p>{uploadStatus}</p>
+
+      <h2>Photo Gallery</h2>
+      <div className="gallery">
+        {photos.map((photo) => (
+          <div key={photo._id} className="photo-card">
+            <img
+              src={`http://localhost:3001/${photo.filepath}`}
+              alt={photo.filename}
+              style={{ width: '200px', height: 'auto' }}
+            />
+            <p>Uploaded By: {photo.uploadedBy}</p>
+            <p>Upload Date: {new Date(photo.uploadDate).toLocaleString()}</p>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
