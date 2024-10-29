@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Box, Typography, Grid2 } from '@mui/material';
+import PhotoUpload from './components/PhotoUpload';
+import PhotoCard from './components/PhotoCard';
+import PhotoModal from './components/PhotoModal';
 
 function App() {
   const [photos, setPhotos] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadedBy, setUploadedBy] = useState('');
   const [uploadStatus, setUploadStatus] = useState('');
+  const [open, setOpen] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   // Fetch photos from the backend
   useEffect(() => {
@@ -55,34 +61,53 @@ function App() {
     }
   };
 
-  return (
-    <div className="App">
-      <h1>Photo Upload</h1>
-      <input type="file" onChange={handleFileChange} />
-      <input
-        type="text"
-        placeholder="Uploaded By"
-        value={uploadedBy}
-        onChange={handleUploadedByChange}
-      />
-      <button onClick={handleUpload}>Upload</button>
-      <p>{uploadStatus}</p>
+  const handleDelete = async (id) => {
+    try {
+      await axios.delete(`http://localhost:3001/api/photos/${id}`);
+      setPhotos(photos.filter((photo) => photo._id !== id));
+    } catch (error) {
+      console.error('Error deleting photo:', error);
+    }
+  };
 
-      <h2>Photo Gallery</h2>
-      <div className="gallery">
+  const handleClickOpen = (photo) => {
+    setSelectedPhoto(photo);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedPhoto(null);
+  };
+
+  return (
+    <Box sx={{ padding: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Photo Upload
+      </Typography>
+
+      <PhotoUpload
+        handleFileChange={handleFileChange}
+        handleUploadedByChange={handleUploadedByChange}
+        handleUpload={handleUpload}
+        uploadedBy={uploadedBy}
+        uploadStatus={uploadStatus}
+      />
+
+      <Typography variant="h5" component="h2" gutterBottom>
+        Photo Gallery
+      </Typography>
+
+      <Grid2 container spacing={3}>
         {photos.map((photo) => (
-          <div key={photo._id} className="photo-card">
-            <img
-              src={`http://localhost:3001/${photo.filepath}`}
-              alt={photo.filename}
-              style={{ width: '200px', height: 'auto' }}
-            />
-            <p>Uploaded By: {photo.uploadedBy}</p>
-            <p>Upload Date: {new Date(photo.uploadDate).toLocaleString()}</p>
-          </div>
+          <Grid2 item xs={12} sm={6} md={4} key={photo._id}>
+            <PhotoCard photo={photo} onDelete={handleDelete} onView={handleClickOpen} />
+          </Grid2>
         ))}
-      </div>
-    </div>
+      </Grid2>
+
+      <PhotoModal open={open} selectedPhoto={selectedPhoto} handleClose={handleClose} />
+    </Box>
   );
 }
 
