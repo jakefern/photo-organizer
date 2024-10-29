@@ -22,6 +22,7 @@ const uploadRoute = require('./routes/upload');
 
 app.use('/api', uploadRoute);
 
+app.use('/uploads', express.static('uploads'));
 
 // Start the server
 const PORT = process.env.PORT || 3001;
