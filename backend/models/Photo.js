@@ -8,6 +8,12 @@ const PhotoSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  takenDate: Date,
+  location: {
+    latitude: Number,
+    longitude: Number,
+  },
+  camera: String,
 });
 
 module.exports = mongoose.model('Photo', PhotoSchema);

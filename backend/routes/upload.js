@@ -17,6 +17,8 @@ const upload = multer({ storage: storage });
 
 const fs = require('fs'); // Import fs to delete files from the file system
 
+const exifr = require('exifr'); // Import exifr to extract and parse photo metadata
+
 // Route to delete a photo
 router.delete('/photos/:id', async (req, res) => {
   try {
@@ -49,15 +51,29 @@ router.delete('/photos/:id', async (req, res) => {
 // Route to handle file upload
 router.post('/upload', upload.single('photo'), async (req, res) => {
   if (!req.file) {
+    console.error('No file uploaded');
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
   try {
-    // Save metadata to MongoDB
+    // Extract EXIF metadata from the uploaded photo
+    const metadata = await exifr.parse(req.file.path);
+
+    // Create the photo document with additional metadata
     const newPhoto = new Photo({
       filename: req.file.filename,
       filepath: req.file.path,
-      uploadedBy: req.body.uploadedBy || 'Anonymous', // Optional field for uploadedBy
+      uploadedBy: req.body.uploadedBy || 'Anonymous',
+      takenDate: metadata.DateTimeOriginal || null, // Date photo was taken
+      location: metadata.latitude && metadata.longitude
+        ? {
+            latitude: metadata.latitude,
+            longitude: metadata.longitude,
+          }
+        : null, // Location data if available
+      camera: metadata.Make && metadata.Model
+        ? `${metadata.Make} ${metadata.Model}`
+        : null, // Camera information
     });
 
     await newPhoto.save();
