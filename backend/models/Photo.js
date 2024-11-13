@@ -1,3 +1,4 @@
+// models/Photo.js
 const mongoose = require('mongoose');
 
 const PhotoSchema = new mongoose.Schema({
@@ -14,6 +15,10 @@ const PhotoSchema = new mongoose.Schema({
     longitude: Number,
   },
   camera: String,
+  event: {
+    type: String,
+    required: false, // This stores the event name
+  },
 });
 
 module.exports = mongoose.model('Photo', PhotoSchema);

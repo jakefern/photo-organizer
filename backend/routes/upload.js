@@ -74,6 +74,7 @@ router.post('/upload', upload.single('photo'), async (req, res) => {
       camera: metadata.Make && metadata.Model
         ? `${metadata.Make} ${metadata.Model}`
         : null, // Camera information
+      event: req.body.event || 'General', // Event information from the frontend
     });
 
     await newPhoto.save();
@@ -88,15 +89,15 @@ router.post('/upload', upload.single('photo'), async (req, res) => {
   }
 });
 
+// Route to get all photos
 router.get('/photos', async (req, res) => {
-    try {
-      const photos = await Photo.find();
-      res.status(200).json(photos);
-    } catch (error) {
-      console.error('Error fetching photos:', error);
-      res.status(500).json({ error: 'Failed to fetch photos' });
-    }
-  });
-  
+  try {
+    const photos = await Photo.find();
+    res.status(200).json(photos);
+  } catch (error) {
+    console.error('Error fetching photos:', error);
+    res.status(500).json({ error: 'Failed to fetch photos' });
+  }
+});
 
 module.exports = router;
